@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Sounds of the Sea | Digital Teacher's Guide & Audio Dashboard</title>
+    
+    <!-- Google Fonts: Nunito & Poppins for friendly, rounded, high-legibility typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF for clean, instant client-side printable PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ocean: {
+                            DEFAULT: '#0f4c81',
+                            light: '#1964a6',
+                            dark: '#093154'
+                        },
+                        turquoise: {
+                            DEFAULT: '#00a8cc',
+                            light: '#e0f7fa',
+                            dark: '#00839e'
+                        },
+                        sand: {
+                            DEFAULT: '#fdfbf7',
+                            dark: '#f4efe6',
+                            border: '#e6dfd3'
+                        },
+                        coral: {
+                            DEFAULT: '#ff6b6b',
+                            hover: '#fa5252',
+                            light: '#fff0f0'
+                        },
+                        ink: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom smooth animations and subtle ocean wave styling */
+        body {
+            background-color: #fdfbf7;
+            color: #1e293b;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .wave-divider {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+        }
+
+        .wave-divider svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 36px;
+        }
+
+        /* Active audio equalizer animation */
+        @keyframes bounceBar {
+            0%, 100% { transform: scaleY(0.35); }
+            50% { transform: scaleY(1); }
+        }
+
+        .eq-bar {
+            transform-origin: bottom;
+            animation: bounceBar 0.6s ease-in-out infinite;
+        }
+        .eq-bar:nth-child(2) { animation-delay: 0.15s; }
+        .eq-bar:nth-child(3) { animation-delay: 0.3s; }
+        .eq-bar:nth-child(4) { animation-delay: 0.1s; }
+
+        /* Projector mode blur transition */
+        .sentence-text {
+            transition: all 0.25s ease;
+        }
+
+        .projector-hidden .sentence-text {
+            filter: blur(8px);
+            user-select: none;
+            opacity: 0.35;
+        }
+
+        .projector-hidden .sentence-card:hover .sentence-text {
+            filter: blur(6px);
+        }
+
+        /* Individual peek override */
+        .sentence-card.peek-revealed .sentence-text {
+            filter: none !important;
+            user-select: auto !important;
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-turquoise selection:text-white">
+
+    <!-- Toast Notification Container (Replaces alert() for clean classroom feedback) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4 sm:px-0"></div>
+
+    <!-- 1. HEADER (HERO SECTION) -->
+    <header class="bg-gradient-to-br from-ocean via-ocean-light to-turquoise text-white pt-10 pb-6 shadow-md">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                
+                <!-- Title & Ocean Icon -->
+                <div class="flex items-start sm:items-center gap-4">
+                    <div class="bg-white/15 backdrop-blur-sm p-3.5 rounded-2xl border border-white/25 shadow-inner shrink-0">
+                        <!-- Custom Ocean Wave & Fish SVG Icon -->
+                        <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M36 18C32.5 14 27 12 21 12C13 12 7 18 7 18C7 18 13 24 21 24C27 24 32.5 22 36 18Z" fill="#ff6b6b" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M36 18L43 13V23L36 18Z" fill="#ff6b6b" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
+                            <circle cx="15" cy="17" r="2" fill="white"/>
+                            <path d="M4 32C8 29 12 29 16 32C20 35 24 35 28 32C32 29 36 29 40 32C42 33.5 43.5 34 44 34" stroke="#a5f3fc" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M4 39C8 36 12 36 16 39C20 42 24 42 28 39C32 36 36 36 40 39C42 40.5 43.5 41 44 41" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-turquoise-light text-xs sm:text-sm font-bold uppercase tracking-wider mb-1">
+                            ESL Classroom Activity &bull; Digital Teacher's Guide
+                        </p>
+                        <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
+                            The Sounds of the Sea
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Badges Next to Title -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 text-white px-3.5 py-2 rounded-xl text-sm font-bold shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-turquoise-light"></span>
+                        Level: A2
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/25 text-white px-3.5 py-2 rounded-xl text-sm font-bold shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-amber-300"></span>
+                        Ages: 9–10
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 bg-white text-ocean px-3.5 py-2 rounded-xl text-sm font-extrabold shadow-sm">
+                        <svg class="w-4 h-4 text-coral" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"/>
+                        </svg>
+                        Focus: Syntax &amp; Phonetics
+                    </span>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- Decorative Wave Divider -->
+    <div class="wave-divider bg-turquoise">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fdfbf7"></path>
+        </svg>
+    </div>
+
+    <!-- MAIN PAGE NAVIGATION TABS (Separates Teacher's Guide from Audio Bank) -->
+    <nav aria-label="Main page sections" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div class="bg-white p-1.5 rounded-2xl border border-sand-border shadow-xs inline-flex flex-wrap gap-1.5 w-full sm:w-auto">
+            <button 
+                id="tab-guide-btn" 
+                type="button" 
+                onclick="switchMainView('guide')" 
+                aria-pressed="true"
+                class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading font-bold text-sm sm:text-base bg-ocean text-white shadow-xs transition-all cursor-pointer"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span>Teacher's Guide</span>
+            </button>
+            <button 
+                id="tab-audio-btn" 
+                type="button" 
+                onclick="switchMainView('audio')" 
+                aria-pressed="false"
+                class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-heading font-bold text-sm sm:text-base text-ocean hover:bg-sand-dark transition-all cursor-pointer"
+            >
+                <svg class="w-4 h-4 text-coral" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                </svg>
+                <span>Audio Files &amp; Printable PDF</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        <!-- VIEW 1: TEACHER'S GUIDE (Welcome, Kit Components, Step-by-Step Instructions) -->
+        <div id="guide-view" class="space-y-8 sm:space-y-10">
+
+        <!-- 2. INTRODUCTION (TEACHER WELCOME) -->
+        <section aria-labelledby="welcome-heading" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-sand-border relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-turquoise"></div>
+            <div class="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+                <div class="bg-turquoise-light text-ocean p-3.5 rounded-2xl shrink-0">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 id="welcome-heading" class="font-heading text-xl sm:text-2xl font-bold text-ocean mb-2">
+                        Teacher Welcome
+                    </h2>
+                    <p class="text-ink/90 text-base sm:text-lg leading-relaxed">
+                        Hello, Teacher! Welcome to the digital guide for <strong>The Sounds of the Sea</strong>. This hands-on teaching resource is designed to help your students practice English syntax and phonetics through active play—without relying on complex grammar rules or memorizing phonetic alphabets. By listening, fishing, and arranging words, students build and pronounce complete sentences naturally.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. WHAT'S INCLUDED? (KIT COMPONENTS) -->
+        <section aria-labelledby="kit-heading" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 id="kit-heading" class="font-heading text-2xl sm:text-3xl font-extrabold text-ocean flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-ocean text-white inline-flex items-center justify-center text-base shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </span>
+                    What’s Included?
+                </h2>
+                <span class="text-xs sm:text-sm font-bold text-ocean/70 bg-sand-dark px-3 py-1.5 rounded-full border border-sand-border">
+                    Classroom Kit Overview
+                </span>
+            </div>
+
+            <!-- Visual Grid with Icons -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                
+                <!-- Component 1: 4 Boxes -->
+                <div class="bg-white rounded-2xl p-5 border border-sand-border shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-ocean/10 text-ocean flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean">4 Boxes</h3>
+                        <p class="text-ink/80 text-sm sm:text-base mt-0.5 leading-snug">
+                            Individual fishing stations for small-group or team play.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Component 2: 40 Reusable Fish -->
+                <div class="bg-white rounded-2xl p-5 border border-sand-border shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-turquoise/15 text-turquoise-dark flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M18 12c-2.5-3-6.5-4.5-10.5-4.5-3.5 0-5.5 4.5-5.5 4.5s2 4.5 5.5 4.5c4 0 8-1.5 10.5-4.5zm0 0l4-3v6l-4-3z"/>
+                            <circle cx="6.5" cy="11.5" r="1" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean">40 Reusable Fish</h3>
+                        <p class="text-ink/80 text-sm sm:text-base mt-0.5 leading-snug">
+                            10 fish per box; each fish represents one word.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Component 3: 4 Fishing Rods -->
+                <div class="bg-white rounded-2xl p-5 border border-sand-border shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-700 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 20L17 4c1.5-1.5 3.5-.5 3.5 1.5v9.5a2.5 2.5 0 01-5 0V13"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean">4 Fishing Rods</h3>
+                        <p class="text-ink/80 text-sm sm:text-base mt-0.5 leading-snug">
+                            Kid-friendly rods designed for active, hands-on catching.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Component 4: Velcro Word Cards + 20 Starter Audios -->
+                <div class="bg-white rounded-2xl p-5 border border-sand-border shadow-sm hover:shadow-md transition-shadow flex items-start gap-4 sm:col-span-2 lg:col-span-2">
+                    <div class="w-12 h-12 rounded-2xl bg-coral/15 text-coral flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean">Velcro Word Cards + 20 Starter Audios</h3>
+                        <p class="text-ink/80 text-sm sm:text-base mt-0.5 leading-relaxed">
+                            Includes a bank of 20 ready-to-use sentences (up to 10 words each) so you can start playing right out of the box.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Component 5: 100% Customizable -->
+                <div class="bg-gradient-to-br from-turquoise-light/60 to-white rounded-2xl p-5 border border-turquoise/30 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4 sm:col-span-2 lg:col-span-1">
+                    <div class="w-12 h-12 rounded-2xl bg-turquoise text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean">100% Customizable</h3>
+                        <p class="text-ink/85 text-sm mt-0.5 leading-relaxed">
+                            Thanks to the Velcro system, you can easily peel off the included words and attach your own word cards with a piece of Velcro to adapt the game to any lesson topic or vocabulary unit (food, verbs, animals, etc.).
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 4. STEP-BY-STEP INSTRUCTIONS -->
+        <section aria-labelledby="instructions-heading" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-sand-border space-y-6">
+            <div>
+                <h2 id="instructions-heading" class="font-heading text-2xl sm:text-3xl font-extrabold text-ocean flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-turquoise text-white inline-flex items-center justify-center text-base shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                    </span>
+                    Step-by-Step Instructions
+                </h2>
+                <p class="text-ink/75 text-sm sm:text-base mt-1">
+                    Follow these four simple steps to run the activity smoothly in your classroom.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                <!-- Step 1 -->
+                <div class="bg-sand rounded-2xl p-5 border border-sand-border flex gap-4">
+                    <div class="w-10 h-10 rounded-full bg-ocean text-white font-heading font-extrabold text-lg flex items-center justify-center shrink-0 shadow-sm">
+                        1
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean mb-1">
+                            Set Up the Stations
+                        </h3>
+                        <p class="text-ink/85 text-sm sm:text-base leading-relaxed">
+                            Choose how many boxes to use based on your class size or number of teams. Take the 10 fish from each box and attach the Velcro words for one sentence (using either the starter sentences below or your own custom phrases). Place the fish mixed up inside each box.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-sand rounded-2xl p-5 border border-sand-border flex gap-4">
+                    <div class="w-10 h-10 rounded-full bg-ocean text-white font-heading font-extrabold text-lg flex items-center justify-center shrink-0 shadow-sm">
+                        2
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean mb-1">
+                            Go Fishing
+                        </h3>
+                        <p class="text-ink/85 text-sm sm:text-base leading-relaxed">
+                            Set a time limit. Using the fishing rods, students catch all the fish from their box and lay them out on a desk or flat surface.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-sand rounded-2xl p-5 border border-sand-border flex gap-4">
+                    <div class="w-10 h-10 rounded-full bg-ocean text-white font-heading font-extrabold text-lg flex items-center justify-center shrink-0 shadow-sm">
+                        3
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean mb-1">
+                            Active Listening
+                        </h3>
+                        <p class="text-ink/85 text-sm sm:text-base leading-relaxed">
+                            Open the <button type="button" onclick="switchMainView('audio')" class="underline font-bold text-ocean hover:text-turquoise cursor-pointer">Audio Files &amp; Printable PDF</button> tab, find the matching audio track, and play it for your students. <em>(Note: If you created your own custom sentences, simply read the sentence aloud yourself).</em>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-sand rounded-2xl p-5 border border-sand-border flex gap-4">
+                    <div class="w-10 h-10 rounded-full bg-coral text-white font-heading font-extrabold text-lg flex items-center justify-center shrink-0 shadow-sm">
+                        4
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-ocean mb-1">
+                            Arrange &amp; Pronounce
+                        </h3>
+                        <p class="text-ink/85 text-sm sm:text-base leading-relaxed">
+                            After listening, students arrange the fish in the correct syntactic order on their desk and read the full sentence aloud to practice their pronunciation and phonetics.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Quick Jump CTA to Audio Section -->
+            <div class="pt-2 flex justify-end">
+                <button type="button" onclick="switchMainView('audio')" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-coral hover:bg-coral-hover text-white font-heading font-bold text-sm sm:text-base shadow-sm transition-all cursor-pointer">
+                    <span>Go to Audio Files &amp; Printable PDF</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        </div><!-- END VIEW 1: TEACHER'S GUIDE -->
+
+        <!-- VIEW 2: SEPARATED AUDIO SECTION & PRINTABLE PDF DOWNLOAD -->
+        <div id="audio-view" class="hidden space-y-6">
+
+        <!-- DOWNLOADABLE PRINTABLE WORD CARDS PDF BOX -->
+        <section aria-labelledby="pdf-download-heading" class="bg-gradient-to-r from-turquoise-light/80 via-white to-sand rounded-3xl p-5 sm:p-6 border border-turquoise/35 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-ocean text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 id="pdf-download-heading" class="font-heading text-lg sm:text-xl font-extrabold text-ocean">
+                            Printable Word Cards (PDF)
+                        </h2>
+                        <span class="text-xs font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            Available for Download
+                        </span>
+                    </div>
+                    <p class="text-ink/85 text-sm sm:text-base mt-1 leading-snug">
+                        Printable word card files are <strong>available for download</strong> right here. Print and cut out all the words featured in the 20 audio recordings to attach to your Velcro fish.
+                    </p>
+                </div>
+            </div>
+
+            <button 
+                type="button" 
+                onclick="downloadWordsPDF()" 
+                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-ocean hover:bg-ocean-light active:scale-95 text-white font-heading font-bold text-sm sm:text-base shadow-sm transition-all shrink-0 cursor-pointer"
+            >
+                <svg class="w-5 h-5 text-turquoise-light" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                <span>Download Words PDF</span>
+            </button>
+        </section>
+
+        <!-- 5. STARTER AUDIO BANK (20 PRE-LOADED SENTENCES) -->
+        <section id="audio-bank-section" aria-labelledby="audio-heading" class="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-ocean/15 space-y-6">
+            
+            <!-- Audio Dashboard Header & Controls -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-sand-border">
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-9 h-9 rounded-xl bg-coral text-white inline-flex items-center justify-center shadow-sm">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"/>
+                            </svg>
+                        </span>
+                        <h2 id="audio-heading" class="font-heading text-2xl sm:text-3xl font-extrabold text-ocean">
+                            Starter Audio Bank
+                        </h2>
+                    </div>
+                    <p class="text-ink/75 text-sm sm:text-base mt-1">
+                        Pre-Loaded Classroom Sentences &bull; Tap <strong>Play</strong> for natural speed or <strong>0.75x</strong> for clear phonetic modeling.
+                    </p>
+                </div>
+
+                <!-- Projector Mode Toggle & Stop Audio Button -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <button id="stop-all-btn" type="button" onclick="stopSpeech()" class="hidden items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm transition-colors shadow-sm cursor-pointer">
+                        <svg class="w-4 h-4 text-coral" fill="currentColor" viewBox="0 0 20 20">
+                            <rect x="5" y="5" width="10" height="10" rx="1.5"/>
+                        </svg>
+                        Stop Audio
+                    </button>
+
+                    <button id="projector-toggle-btn" type="button" onclick="toggleProjectorMode()" aria-pressed="false" class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-ocean hover:bg-ocean-light text-white font-bold text-sm sm:text-base transition-all shadow-sm cursor-pointer">
+                        <!-- Eye Icon -->
+                        <svg id="projector-icon-eye" class="w-5 h-5 text-turquoise-light" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                        </svg>
+                        <span id="projector-btn-label">Projector Mode: Hide Text</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Projector Mode Active Banner (Shown only when text is hidden) -->
+            <div id="projector-banner" class="hidden bg-ocean text-white px-4 py-3 rounded-2xl flex items-center justify-between gap-3 text-sm">
+                <div class="flex items-center gap-2.5">
+                    <span class="bg-turquoise text-ocean font-extrabold px-2 py-0.5 rounded-md text-xs uppercase tracking-wider">Classroom Mode</span>
+                    <span>Sentence text is hidden from students. Click the small eye icon on any track to peek privately.</span>
+                </div>
+                <button type="button" onclick="toggleProjectorMode()" class="underline font-bold hover:text-turquoise-light shrink-0 cursor-pointer">
+                    Show All
+                </button>
+            </div>
+
+            <!-- Search Bar & Voice Status -->
+            <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-ocean/50" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="track-search" 
+                        oninput="filterTracks()"
+                        placeholder="Search by track number (e.g., 05, 14) or keyword (e.g., whale, dog, queen)..." 
+                        aria-label="Filter audio tracks by number or keyword"
+                        class="w-full pl-11 pr-10 py-3 bg-sand border border-sand-border rounded-2xl text-ink placeholder-ink/50 focus:outline-none focus:ring-2 focus:ring-turquoise focus:border-turquoise font-medium text-sm sm:text-base transition-all"
+                    >
+                    <button 
+                        id="clear-search-btn" 
+                        type="button" 
+                        onclick="clearSearch()" 
+                        aria-label="Clear search"
+                        class="hidden absolute inset-y-0 right-0 pr-3.5 flex items-center text-ink/50 hover:text-coral cursor-pointer"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Voice Indicator Pill -->
+                <div id="voice-status" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-turquoise-light/70 border border-turquoise/25 text-ocean text-xs sm:text-sm font-bold shrink-0">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="voice-name-label">en-US Voice Ready</span>
+                </div>
+            </div>
+
+            <!-- Empty Search State -->
+            <div id="no-results" class="hidden text-center py-10 px-4 bg-sand rounded-2xl border border-dashed border-sand-border">
+                <p class="font-heading font-bold text-lg text-ocean">No matching audio tracks found</p>
+                <p class="text-ink/70 text-sm mt-1">Try searching for a track number or clear your search filter.</p>
+                <button type="button" onclick="clearSearch()" class="mt-4 px-4 py-2 bg-ocean text-white rounded-xl font-bold text-sm hover:bg-ocean-light cursor-pointer">
+                    Show All Tracks
+                </button>
+            </div>
+
+            <!-- Tracks List Container -->
+            <div id="tracks-grid" class="grid grid-cols-1 gap-3.5">
+                <!-- Tracks are dynamically rendered here via JavaScript -->
+            </div>
+
+        </section>
+
+        </div><!-- END VIEW 2: AUDIO SECTION -->
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-ink/60 text-sm">
+        <p class="font-semibold text-ocean/80">The Sounds of the Sea &bull; Interactive ESL Teaching Companion</p>
+        <p class="mt-1 text-xs">Powered by native browser Web Speech API (en-US) for offline-friendly classroom playback.</p>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 20 Pre-Loaded Starter Sentences for the kit (all 6 custom sentences placed first)
+        const starterTracks = [
+            { id: 1, code: "Audio 01", text: "The brown cow eats fresh grass." },
+            { id: 2, code: "Audio 02", text: "Put the green book on the chair." },
+            { id: 3, code: "Audio 03", text: "Ice cream, you scream, we all scream, for Ice cream." },
+            { id: 4, code: "Audio 04", text: "He left the milk on the desk." },
+            { id: 5, code: "Audio 05", text: "The frog can swim fast." },
+            { id: 6, code: "Audio 06", text: "My brother rides a fast bike." },
+            { id: 7, code: "Audio 07", text: "She has a cute white dog." },
+            { id: 8, code: "Audio 08", text: "Look at the bright moon tonight." },
+            { id: 9, code: "Audio 09", text: "We see three birds in the tree." },
+            { id: 10, code: "Audio 10", text: "Take a photo of the small whale." },
+            { id: 11, code: "Audio 11", text: "He plays with a noisy toy." },
+            { id: 12, code: "Audio 12", text: "Clean your teeth before you sleep." },
+            { id: 13, code: "Audio 13", text: "The dark car stops at the park." },
+            { id: 14, code: "Audio 14", text: "Write your name on the red page." },
+            { id: 15, code: "Audio 15", text: "A small mouse lives in that house." },
+            { id: 16, code: "Audio 16", text: "The girl has a purple skirt." },
+            { id: 17, code: "Audio 17", text: "Knock on the door with your hand." },
+            { id: 18, code: "Audio 18", text: "We eat sweet cake on the train." },
+            { id: 19, code: "Audio 19", text: "The queen wears a gold crown." },
+            { id: 20, code: "Audio 20", text: "Catch the yellow ball with two hands." }
+        ];
+
+        // Application State
+        let isProjectorHidden = false;
+        let activeTrackId = null;
+        let activeSpeed = null; // 'normal' or 'slow'
+        let selectedVoice = null;
+
+        // DOM Elements
+        const tracksGrid = document.getElementById('tracks-grid');
+        const audioBankSection = document.getElementById('audio-bank-section');
+        const searchInput = document.getElementById('track-search');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+        const noResultsDiv = document.getElementById('no-results');
+        const projectorToggleBtn = document.getElementById('projector-toggle-btn');
+        const projectorBtnLabel = document.getElementById('projector-btn-label');
+        const projectorBanner = document.getElementById('projector-banner');
+        const stopAllBtn = document.getElementById('stop-all-btn');
+        const voiceNameLabel = document.getElementById('voice-name-label');
+        const guideView = document.getElementById('guide-view');
+        const audioView = document.getElementById('audio-view');
+        const tabGuideBtn = document.getElementById('tab-guide-btn');
+        const tabAudioBtn = document.getElementById('tab-audio-btn');
+
+        /**
+         * Switch between the Teacher's Guide view and the separated Audio Files & PDF view
+         */
+        function switchMainView(viewName) {
+            if (viewName === 'audio') {
+                guideView.classList.add('hidden');
+                audioView.classList.remove('hidden');
+
+                tabAudioBtn.classList.add('bg-ocean', 'text-white', 'shadow-xs');
+                tabAudioBtn.classList.remove('text-ocean', 'hover:bg-sand-dark');
+                tabAudioBtn.setAttribute('aria-pressed', 'true');
+
+                tabGuideBtn.classList.remove('bg-ocean', 'text-white', 'shadow-xs');
+                tabGuideBtn.classList.add('text-ocean', 'hover:bg-sand-dark');
+                tabGuideBtn.setAttribute('aria-pressed', 'false');
+            } else {
+                audioView.classList.add('hidden');
+                guideView.classList.remove('hidden');
+
+                tabGuideBtn.classList.add('bg-ocean', 'text-white', 'shadow-xs');
+                tabGuideBtn.classList.remove('text-ocean', 'hover:bg-sand-dark');
+                tabGuideBtn.setAttribute('aria-pressed', 'true');
+
+                tabAudioBtn.classList.remove('bg-ocean', 'text-white', 'shadow-xs');
+                tabAudioBtn.classList.add('text-ocean', 'hover:bg-sand-dark');
+                tabAudioBtn.setAttribute('aria-pressed', 'false');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /**
+         * Generate and download a simple, clean printable PDF of all words featured in the audio recordings
+         */
+        function downloadWordsPDF() {
+            try {
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    showToast("PDF generator is loading. Please try again in a moment.", "error");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 14;
+                let y = 18;
+
+                // Simple header
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.setTextColor(15, 76, 129);
+                doc.text('The Sounds of the Sea - Printable Word Cards', margin, y);
+
+                y += 6;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor(80, 80, 80);
+                doc.text('Cut out the word cards below and attach them to your Velcro fish for each audio track.', margin, y);
+
+                y += 8;
+                doc.setDrawColor(200, 200, 200);
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 7;
+
+                // Loop through all 20 audio sentences and draw simple cut-out word boxes
+                starterTracks.forEach((track) => {
+                    const words = track.text.split(/\s+/);
+                    const boxHeight = 10;
+                    const boxPaddingX = 4;
+                    const gapX = 3;
+
+                    // Check page overflow (need ~22mm per track row)
+                    if (y + 22 > pageHeight - margin) {
+                        doc.addPage();
+                        y = 18;
+                    }
+
+                    // Track label + full reference sentence
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(10);
+                    doc.setTextColor(15, 76, 129);
+                    doc.text(`${track.code}:`, margin, y);
+
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9.5);
+                    doc.setTextColor(90, 90, 90);
+                    doc.text(track.text, margin + 20, y);
+
+                    y += 3;
+
+                    // Draw individual cut-out word boxes
+                    let x = margin;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(11);
+                    doc.setTextColor(20, 20, 20);
+
+                    words.forEach((word) => {
+                        const textWidth = doc.getTextWidth(word);
+                        const boxWidth = Math.max(15, textWidth + boxPaddingX * 2);
+
+                        // Wrap to next line if a long sentence exceeds page width
+                        if (x + boxWidth > pageWidth - margin) {
+                            x = margin;
+                            y += boxHeight + 3;
+                            if (y + boxHeight > pageHeight - margin) {
+                                doc.addPage();
+                                y = 18;
+                            }
+                        }
+
+                        // Simple dashed-style border box for easy scissor cutting
+                        doc.setDrawColor(120, 120, 120);
+                        doc.setLineWidth(0.3);
+                        doc.rect(x, y, boxWidth, boxHeight);
+
+                        // Center word inside box
+                        const textX = x + (boxWidth - textWidth) / 2;
+                        const textY = y + 6.7;
+                        doc.text(word, textX, textY);
+
+                        x += boxWidth + gapX;
+                    });
+
+                    y += boxHeight + 7;
+                });
+
+                doc.save('The-Sounds-of-the-Sea-Word-Cards.pdf');
+                showToast("Word Cards PDF downloaded!", "info");
+            } catch (err) {
+                showToast("Could not generate PDF. Please try again.", "error");
+            }
+        }
+
+        /**
+         * Initialize Web Speech API and select the clearest en-US voice available
+         */
+        function initSpeechVoices() {
+            if (!('speechSynthesis' in window)) {
+                voiceNameLabel.textContent = "Speech API Not Supported";
+                showToast("Your browser does not support Web Speech audio playback.", "error");
+                return;
+            }
+
+            const loadVoices = () => {
+                const voices = window.speechSynthesis.getVoices();
+                if (!voices.length) return;
+
+                // Prioritize high-quality natural en-US voices
+                const preferredNames = [
+                    'Google US English',
+                    'Microsoft Aria Online (Natural) - English (United States)',
+                    'Microsoft Jenny Online (Natural) - English (United States)',
+                    'Samantha',
+                    'Alex',
+                    'Microsoft Zira',
+                    'Microsoft David'
+                ];
+
+                let found = null;
+                for (const name of preferredNames) {
+                    found = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'));
+                    if (found) break;
+                }
+
+                // Fallback to any en-US voice, then any English voice
+                if (!found) {
+                    found = voices.find(v => v.lang === 'en-US') ||
+                            voices.find(v => v.lang.startsWith('en-')) ||
+                            voices[0];
+                }
+
+                selectedVoice = found;
+                if (selectedVoice) {
+                    // Clean up verbose browser voice names for the UI badge
+                    const cleanName = selectedVoice.name.replace(/Microsoft |Google |\(United States\)/g, '').trim();
+                    voiceNameLabel.textContent = `Voice: ${cleanName} (en-US)`;
+                }
+            };
+
+            loadVoices();
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+        }
+
+        /**
+         * Count words in a sentence so teachers know how many fish to prepare
+         */
+        function countWords(sentence) {
+            return sentence.trim().split(/\s+/).length;
+        }
+
+        /**
+         * Render the list of audio tracks into the DOM
+         */
+        function renderTracks(tracksToRender) {
+            tracksGrid.innerHTML = '';
+
+            if (tracksToRender.length === 0) {
+                noResultsDiv.classList.remove('hidden');
+                return;
+            } else {
+                noResultsDiv.classList.add('hidden');
+            }
+
+            tracksToRender.forEach(track => {
+                const isPlayingThis = activeTrackId === track.id;
+                const wordCount = countWords(track.text);
+
+                const card = document.createElement('div');
+                card.id = `track-card-${track.id}`;
+                card.className = `sentence-card rounded-2xl p-4 sm:p-5 border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                    isPlayingThis 
+                        ? 'bg-turquoise-light/50 border-turquoise shadow-md ring-2 ring-turquoise/30' 
+                        : 'bg-sand/70 hover:bg-white border-sand-border shadow-xs'
+                }`;
+
+                card.innerHTML = `
+                    <!-- Left: Track Badge & Sentence -->
+                    <div class="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                        <!-- Track Number Pill -->
+                        <div class="shrink-0 flex flex-col items-center justify-center px-3 py-2 rounded-xl font-heading font-extrabold text-sm ${
+                            isPlayingThis ? 'bg-turquoise text-white' : 'bg-ocean text-white'
+                        } shadow-xs min-w-[88px]">
+                            <span>${track.code}</span>
+                            <span class="text-[11px] font-sans font-semibold opacity-85">${wordCount} ${wordCount === 1 ? 'fish' : 'fish'}</span>
+                        </div>
+
+                        <!-- Sentence Display + Individual Peek Button -->
+                        <div class="flex-1 min-w-0 flex items-center gap-2.5">
+                            <p class="sentence-text font-heading font-bold text-lg sm:text-xl text-ink break-words leading-snug">
+                                "${track.text}"
+                            </p>
+                            
+                            <!-- Individual Teacher Peek Button (visible when Projector Mode hides text) -->
+                            <button 
+                                type="button" 
+                                onclick="toggleSinglePeek(${track.id})"
+                                title="Peek at sentence privately"
+                                aria-label="Toggle visibility for ${track.code}"
+                                class="peek-btn ${isProjectorHidden ? 'inline-flex' : 'hidden'} shrink-0 p-2 rounded-lg bg-ocean/10 hover:bg-ocean/20 text-ocean transition-colors cursor-pointer"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Audio Playback Controls -->
+                    <div class="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                        
+                        <!-- Live Equalizer Indicator when playing -->
+                        ${isPlayingThis ? `
+                            <div class="flex items-end gap-0.5 h-5 px-2" aria-hidden="true">
+                                <span class="eq-bar w-1 h-4 bg-coral rounded-full"></span>
+                                <span class="eq-bar w-1 h-5 bg-turquoise rounded-full"></span>
+                                <span class="eq-bar w-1 h-3 bg-ocean rounded-full"></span>
+                                <span class="eq-bar w-1 h-4 bg-coral rounded-full"></span>
+                            </div>
+                        ` : ''}
+
+                        <!-- Primary Play Button (1.0x Normal Speed) -->
+                        <button 
+                            type="button" 
+                            onclick="playTrack(${track.id}, 1.0)"
+                            aria-label="Play ${track.code} at normal speed"
+                            class="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl font-heading font-bold text-sm sm:text-base transition-all shadow-sm cursor-pointer ${
+                                isPlayingThis && activeSpeed === 'normal'
+                                    ? 'bg-ocean text-white ring-2 ring-ocean/40'
+                                    : 'bg-coral hover:bg-coral-hover active:scale-95 text-white'
+                            }"
+                        >
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                            </svg>
+                            <span>Play</span>
+                        </button>
+
+                        <!-- Slow Speed Button (0.75x) -->
+                        <button 
+                            type="button" 
+                            onclick="playTrack(${track.id}, 0.75)"
+                            aria-label="Play ${track.code} at slow 0.75x speed"
+                            class="inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl font-heading font-bold text-sm sm:text-base transition-all border cursor-pointer ${
+                                isPlayingThis && activeSpeed === 'slow'
+                                    ? 'bg-turquoise text-white border-turquoise shadow-sm'
+                                    : 'bg-white hover:bg-turquoise-light text-ocean border-ocean/20 active:scale-95'
+                            }"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>0.75x</span>
+                        </button>
+
+                    </div>
+                `;
+
+                tracksGrid.appendChild(card);
+            });
+        }
+
+        /**
+         * Play a sentence using the browser's native Web Speech API
+         */
+        function playTrack(trackId, rate = 1.0) {
+            if (!('speechSynthesis' in window)) {
+                showToast("Web Speech API is not supported in this browser.", "error");
+                return;
+            }
+
+            const track = starterTracks.find(t => t.id === trackId);
+            if (!track) return;
+
+            try {
+                // Cancel any ongoing speech first
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(track.text);
+                utterance.lang = 'en-US';
+                utterance.rate = rate;
+                utterance.pitch = 1.0;
+
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+
+                // Update UI state when playback starts
+                utterance.onstart = () => {
+                    activeTrackId = trackId;
+                    activeSpeed = rate < 1 ? 'slow' : 'normal';
+                    stopAllBtn.classList.remove('hidden');
+                    stopAllBtn.classList.add('inline-flex');
+                    filterTracks(); // Re-render to highlight active card
+                };
+
+                // Reset UI state when playback finishes
+                utterance.onend = () => {
+                    activeTrackId = null;
+                    activeSpeed = null;
+                    stopAllBtn.classList.add('hidden');
+                    stopAllBtn.classList.remove('inline-flex');
+                    filterTracks();
+                };
+
+                utterance.onerror = (event) => {
+                    // Ignore intentional cancellations
+                    if (event.error !== 'canceled' && event.error !== 'interrupted') {
+                        showToast("Audio playback interrupted. Please tap Play again.", "error");
+                    }
+                    activeTrackId = null;
+                    activeSpeed = null;
+                    stopAllBtn.classList.add('hidden');
+                    stopAllBtn.classList.remove('inline-flex');
+                    filterTracks();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } catch (err) {
+                showToast("Unable to start audio playback.", "error");
+            }
+        }
+
+        /**
+         * Immediately stop any active speech synthesis
+         */
+        function stopSpeech() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            activeTrackId = null;
+            activeSpeed = null;
+            stopAllBtn.classList.add('hidden');
+            stopAllBtn.classList.remove('inline-flex');
+            filterTracks();
+        }
+
+        /**
+         * Toggle Projector Mode (Hides written text so students can't read answers on screen)
+         */
+        function toggleProjectorMode() {
+            isProjectorHidden = !isProjectorHidden;
+            projectorToggleBtn.setAttribute('aria-pressed', isProjectorHidden.toString());
+
+            if (isProjectorHidden) {
+                audioBankSection.classList.add('projector-hidden');
+                projectorBanner.classList.remove('hidden');
+                projectorBtnLabel.textContent = "Projector Mode: Show Text";
+                projectorToggleBtn.classList.remove('bg-ocean', 'hover:bg-ocean-light');
+                projectorToggleBtn.classList.add('bg-coral', 'hover:bg-coral-hover');
+                showToast("Projector Mode ON: Sentences hidden from students.", "info");
+            } else {
+                audioBankSection.classList.remove('projector-hidden');
+                projectorBanner.classList.add('hidden');
+                projectorBtnLabel.textContent = "Projector Mode: Hide Text";
+                projectorToggleBtn.classList.remove('bg-coral', 'hover:bg-coral-hover');
+                projectorToggleBtn.classList.add('bg-ocean', 'hover:bg-ocean-light');
+                // Remove any individual peeks
+                document.querySelectorAll('.sentence-card.peek-revealed').forEach(el => {
+                    el.classList.remove('peek-revealed');
+                });
+            }
+
+            // Re-render to show/hide individual peek eye icons
+            filterTracks();
+        }
+
+        /**
+         * Allow teacher to temporarily peek at a single hidden sentence
+         */
+        function toggleSinglePeek(trackId) {
+            const card = document.getElementById(`track-card-${trackId}`);
+            if (card) {
+                card.classList.toggle('peek-revealed');
+            }
+        }
+
+        /**
+         * Filter tracks by track number (e.g., "01", "1", "Audio 15") or sentence keyword
+         */
+        function filterTracks() {
+            const query = searchInput.value.trim().toLowerCase();
+
+            if (query.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+
+            const filtered = starterTracks.filter(track => {
+                const paddedNum = String(track.id).padStart(2, '0');
+                const matchesNumber = 
+                    track.code.toLowerCase().includes(query) ||
+                    paddedNum.includes(query) ||
+                    String(track.id) === query;
+                const matchesText = track.text.toLowerCase().includes(query);
+
+                return matchesNumber || matchesText;
+            });
+
+            renderTracks(filtered);
+        }
+
+        /**
+         * Clear search bar input
+         */
+        function clearSearch() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            renderTracks(starterTracks);
+            searchInput.focus();
+        }
+
+        /**
+         * Non-intrusive toast notification (replaces browser alert)
+         */
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'error' ? 'bg-coral text-white' : 'bg-ocean text-white';
+            toast.className = `${bgClass} px-4 py-3 rounded-2xl shadow-lg text-sm font-bold flex items-center justify-between gap-3 transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            // Auto dismiss after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpeechVoices();
+            renderTracks(starterTracks);
+        });
+    </script>
+</body>
+</html>
